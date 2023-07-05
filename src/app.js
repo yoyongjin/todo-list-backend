@@ -23,9 +23,13 @@ connection.connect((err) => {
 // CORS 설정
 app.use(cors());
 
+// body parser 설정
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Todo 목록 가져오기 API
 app.get("/api/todos", (req, res) => {
-  const query = "SELECT * FROM todo_db.todo";
+  const query = "SELECT * FROM todo_db.todos";
 
   connection.query(query, (err, results) => {
     if (err) {
@@ -40,18 +44,19 @@ app.get("/api/todos", (req, res) => {
 
 // Todo 추가하기 API
 app.post("/api/todos", (req, res) => {
-  const { text } = req.body;
+  console.log("POST: api/todos", req.body);
+  const { id, content, checked } = req.body;
 
-  const query = "INSERT INTO todos (text) VALUES (?)";
+  const query = "INSERT INTO todos (id, content, checked) VALUES (?, ?, ?)";
 
-  connection.query(query, [text], (err, result) => {
+  connection.query(query, [id, content, checked], (err, result) => {
     if (err) {
       console.error("Error inserting todo into database: ", err);
       res.status(500).json({ error: "Failed to insert todo into database" });
       return;
     }
 
-    res.json({ id: result.insertId, text });
+    res.json({ id: result.insertId, content, checked });
   });
 });
 
