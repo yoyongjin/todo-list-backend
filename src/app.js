@@ -61,20 +61,24 @@ app.post("/api/todos", (req, res) => {
 });
 
 // Todo DELETE 요청 API
-app.delete("/api/todo", (req, res) => {
-  const todoId = req.body.id; // 요청 본문에서 id 값을 읽어옴
+app.delete("/api/todo/:id", (req, res) => {
+  const todoId = req.params.id; // 요청 본문에서 id 값을 읽어옴
 
   // MySQL에서 해당 todo 아이템 삭제
-  connection.query("DELETE FROM todo WHERE id = ?", [todoId], (err, result) => {
-    if (err) {
-      console.error("Error executing MySQL query:", err);
-      res.status(500).json({ error: "Failed to delete todo item from MySQL" });
-      return;
+  connection.query(
+    "DELETE FROM todos WHERE id = ?",
+    [todoId],
+    (err, result) => {
+      if (err) {
+        console.error("Error executing MySQL query:", err);
+        res
+          .status(500)
+          .json({ error: "Failed to delete todo item from MySQL" });
+        return;
+      }
+      res.status(200).json({ message: "User deleted successfully" });
     }
-
-    // 삭제 결과를 클라이언트에 보내기
-    res.json({ success: true });
-  });
+  );
 });
 
 // 서버 시작
