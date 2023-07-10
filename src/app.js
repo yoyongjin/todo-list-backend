@@ -47,7 +47,7 @@ app.get("/api/todo/:id", (req, res) => {
 
   // MySQL에서 해당 todo 아이템 조회
   connection.query(
-    "SELECT * FROM todos WHERE id = ?",
+    "SELECT * FROM todo_db.todos WHERE id = ?",
     [todoId],
     (err, result) => {
       if (err) {
@@ -165,7 +165,7 @@ app.post("/signup", (req, res) => {
 
   // 이메일 중복 확인 쿼리 실행
   connection.query(
-    "SELECT * FROM users WHERE email = ?",
+    "SELECT * FROM todo_db.users WHERE email = ?",
     [email],
     (error, results) => {
       if (error) {
@@ -181,7 +181,7 @@ app.post("/signup", (req, res) => {
           .json({ message: "이미 사용 중인 이메일입니다." });
       }
 
-      // 사용자 생성 쿼리 실행
+      // 사용자 등록
       connection.query(
         "INSERT INTO users (email, password) VALUES (?, ?)",
         [email, password],
@@ -200,9 +200,6 @@ app.post("/signup", (req, res) => {
       );
     }
   );
-
-  // 회원가입이 성공적으로 완료되었음을 응답합니다.
-  //   res.status(201).json({ message: "회원가입이 성공적으로 완료되었습니다." });
 });
 
 // 로그인 POST
@@ -220,8 +217,8 @@ app.post("/login", (req, res) => {
 
   //db에 해당  user 있는지 확인
   connection.query(
-    "SELECT * FROM users WHERE email = ?",
-    [email],
+    "SELECT * FROM todo_db.users WHERE email = ? AND password = ?",
+    [email, password],
     (error, results) => {
       if (error) {
         // 에러 처리
@@ -231,15 +228,14 @@ app.post("/login", (req, res) => {
           .json({ message: "로그인 중 오류가 발생했습니다." });
       }
 
-      if (results.length === 0) {
-        return res
-          .status(400)
-          .json({ message: "해당 user가 존재하지 않습니다." });
-      }
+      //   if (results.length === 0) {
+      //     return res
+      //       .status(400)
+      //       .json({ message: "로그인 정보가 올바르지 않습니다." });
+      //   }
+      //   console.log("rrrrrrrrrrrrrrrrrrrrrrr", results);
     }
   );
-
-  res.status(200).json({ message: "로그인 성공" });
 });
 
 // 서버 시작
