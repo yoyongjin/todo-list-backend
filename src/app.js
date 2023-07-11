@@ -71,18 +71,19 @@ app.get("/api/todo/:id", (req, res) => {
 // Todo 추가하기 API
 app.post("/api/todos", (req, res) => {
   console.log("POST: api/todos", req.body);
-  const { id, content, checked } = req.body;
+  const { content, checked, userId } = req.body;
 
-  const query = "INSERT INTO todos (id, content, checked) VALUES (?, ?, ?)";
+  const query =
+    "INSERT INTO todos ( content, checked, user_id) VALUES (?, ?, ?)";
 
-  connection.query(query, [id, content, checked], (err, result) => {
+  connection.query(query, [content, checked, userId], (err, result) => {
     if (err) {
       console.error("Error inserting todo into database: ", err);
       res.status(500).json({ error: "Failed to insert todo into database" });
       return;
     }
 
-    res.json({ id: result.insertId, content, checked });
+    res.json({ id: result.insertId, content, checked, user_id: userId });
   });
 });
 
@@ -228,12 +229,38 @@ app.post("/login", (req, res) => {
           .json({ message: "로그인 중 오류가 발생했습니다." });
       }
 
-      //   if (results.length === 0) {
-      //     return res
-      //       .status(400)
-      //       .json({ message: "로그인 정보가 올바르지 않습니다." });
-      //   }
-      //   console.log("rrrrrrrrrrrrrrrrrrrrrrr", results);
+      if (results.length === 0) {
+        return res
+          .status(400)
+          .json({ message: "로그인 정보가 올바르지 않습니다." });
+      }
+      console.log("rrrrrrrrrrrrrrrrrrrrrrr", results);
+
+      return res.json({ userId: results[0].id });
+    }
+  );
+});
+
+// userId post => 그사람 todos 반환
+app.get("/user/todo/:id", (req, res) => {
+  const userId = req.params.id; // 요청 URL에서 id 값을 가져옴
+
+  // MySQL에서 해당 todo 아이템 조회
+  connection.query(
+    "SELECT * FROM todo_db.todos WHERE user_id = ?",
+    [userId],
+    (error, results) => {
+      if (error) {
+        console.error("데이터베이스 쿼리 에러:", error);
+        return res.status(500).json({
+          message: "할 일 목록을 가져오는 중 오류가 발생했습니다.",
+        });
+      }
+
+      console.log("ibiiiiiiiiii", results);
+
+      // todos 반환
+      res.status(200).json({ todos: results });
     }
   );
 });
