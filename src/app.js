@@ -38,24 +38,17 @@ app.use(express.urlencoded({ extended: true }));
 
 let todos = [];
 
-// socket 설정
+// socket 연결
 socketIO.on("connection", (socket) => {
   console.log(`⚡: ${socket.id} user just connected!`);
 
-  socket.on("addTodo", (todo) => {
-    todos = [...todos, todo];
-    socket.emit("todos", todos);
-    console.log("tttttttttttttttttt", todos);
+  // Client to Room
+  socket.join("todo_room");
+
+  socket.on("addTodo", (newTodo) => {
+    console.log("aaaaaaaaaaaaaaaaaaaaaaaaddtodo");
+    socket.broadcast.emit("newTodo", newTodo);
   });
-
-  // 클라이언트로부터 메시지를 받았을 때의 처리 로직
-  socket.on("message", (data) => {
-    console.log("클라이언트로부터 메시지를 받았습니다:", data);
-
-    // 받은 메시지를 다른 클라이언트에게 전송
-    io.emit("message", data);
-  });
-
   // 클라이언트와의 연결이 끊겼을 때의 처리 로직
   socket.on("disconnect", () => {
     console.log("🔥: A user disconnected");
@@ -121,6 +114,22 @@ app.post("/api/todos", (req, res) => {
       res.status(500).json({ error: "Failed to insert todo into database" });
       return;
     }
+
+    socketIO.to("room").emit("broadcastTodo", {
+      id: result.insertId,
+      content,
+      checked,
+      user_id: userId,
+    });
+
+    // socket.to("todo room").emit("addTodo");
+
+    // socketIO.emit("broadcastTodo", {
+    //   id: result.insertId,
+    //   content,
+    //   checked,
+    //   user_id: userId,
+    // });
 
     res.json({ id: result.insertId, content, checked, user_id: userId });
   });
