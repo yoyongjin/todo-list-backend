@@ -1,8 +1,17 @@
 const express = require("express");
+const app = express();
+const http = require("http").Server(app);
+const cors = require("cors");
 const mysql = require("mysql");
 const path = require("path");
-const app = express();
-const cors = require("cors");
+const socketIO = require("socket.io")(http, {
+  cors: {
+    origin: "*",
+  },
+});
+
+// const server = http.createServer(app);
+// const io = socketIO(server);
 
 // MySQL 연결 설정
 const connection = mysql.createConnection({
@@ -26,6 +35,35 @@ app.use(cors());
 // body parser 설정
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+let todos = [];
+
+// socket 설정
+socketIO.on("connection", (socket) => {
+  console.log(`⚡: ${socket.id} user just connected!`);
+
+  socket.on("addTodo", (todo) => {
+    todos.unshift(todo);
+    socket.emit("todos", todos);
+  });
+
+  // 클라이언트로부터 메시지를 받았을 때의 처리 로직
+  socket.on("message", (data) => {
+    console.log("클라이언트로부터 메시지를 받았습니다:", data);
+
+    // 받은 메시지를 다른 클라이언트에게 전송
+    io.emit("message", data);
+  });
+
+  // 클라이언트와의 연결이 끊겼을 때의 처리 로직
+  socket.on("disconnect", () => {
+    console.log("🔥: A user disconnected");
+  });
+});
+
+http.listen(4000, () => {
+  console.log("socket 서버가 4000 포트에서 실행 중입니다.");
+});
 
 // Todo 목록 가져오기 API
 app.get("/api/todos", (req, res) => {
