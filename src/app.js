@@ -43,8 +43,9 @@ socketIO.on("connection", (socket) => {
   console.log(`⚡: ${socket.id} user just connected!`);
 
   socket.on("addTodo", (todo) => {
-    todos.unshift(todo);
+    todos = [...todos, todo];
     socket.emit("todos", todos);
+    console.log("tttttttttttttttttt", todos);
   });
 
   // 클라이언트로부터 메시지를 받았을 때의 처리 로직
