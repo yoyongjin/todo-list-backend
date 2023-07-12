@@ -10,9 +10,6 @@ const socketIO = require("socket.io")(http, {
   },
 });
 
-// const server = http.createServer(app);
-// const io = socketIO(server);
-
 // MySQL 연결 설정
 const connection = mysql.createConnection({
   host: "localhost",
@@ -35,8 +32,6 @@ app.use(cors());
 // body parser 설정
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-let todos = [];
 
 // socket 연결
 socketIO.on("connection", (socket) => {
@@ -121,15 +116,6 @@ app.post("/api/todos", (req, res) => {
       checked,
       user_id: userId,
     });
-
-    // socket.to("todo room").emit("addTodo");
-
-    // socketIO.emit("broadcastTodo", {
-    //   id: result.insertId,
-    //   content,
-    //   checked,
-    //   user_id: userId,
-    // });
 
     res.json({ id: result.insertId, content, checked, user_id: userId });
   });
